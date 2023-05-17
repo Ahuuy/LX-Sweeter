@@ -151,6 +151,28 @@ def update_like():
         })
     except (jwt.ExpiredSignatureError, jwt.exceptions.DecodeError):
         return redirect(url_for('home'))
-    
+
+@app.route('/about', methods=['GET'])
+def about():
+    return render_template('about.html')
+
+@app.route('/secret', methods=['GET'])
+def secret():
+    return render_template('secret.html')
+    #token_receive = request.cookies.get(TOKEN_KEY)
+    #try:
+    #    payload = jwt.decode(
+    #        token_receive,
+    #        SECRET_KEY,
+    #        algorithms=['HS256']
+    #    )
+    #    return jsonify({
+    #        'result': 'success',
+    #        'msg': 'pdated'
+    #    })
+    #except (jwt.ExpiredSignatureError, jwt.exceptions.DecodeError):
+    #    return redirect(url_for('home'))
+
+
 if __name__ == '__main__':
     app.run('0.0.0.0', port=5000, debug=True)
