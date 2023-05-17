@@ -7,13 +7,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sweeter</title>
 
+    <!-- Google Font-->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Display:wght@300&display=swap" rel="stylesheet">
+    <!-- Bulma -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/fontawesome.min.css"
-        integrity="sha512-SgaqKKxJDQ/tAUAAXzvxZz33rmn7leYDYfBP+YoMRSENhf3zJyx3SBASt/OfeQwBHA1nxMis7mM3EV/oYT6Fdw=="
+    <!-- Font Awesome-->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
 
+    <!-- Jquery -->
     <script src="https://code.jquery.com/jquery-3.7.0.js"
         integrity="sha256-JlqSTELeR4TLqP0OG9dxM7yDPqX1ox/HfgiSLBj8+kM=" crossorigin="anonymous"></script>
+    <!-- Jquery Cookies-->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"
         integrity="sha512-3j3VU6WC5rPQB4Ld1jnLV7Kd5xr+cq9avvhwqzbH/taCRNURoeEpoPBK9pDyeukwSxwRPJ8fDgvYXd6SkaZ2TA=="
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -29,10 +37,10 @@
                 },
                 success: function (response) {
                     if (response['result'] === 'success') {
-                    let token = response['token'];
-                    $.cookie('mytoken', token, {path: '/'})
-                    alert('Login Success')
-                    window.location.href = "/"
+                        let token = response['token'];
+                        $.cookie('mytoken', token, { path: '/' })
+                        alert('Login Success')
+                        window.location.href = "/"
                     } else {
                         alert(response['msg']);
                     }
@@ -52,7 +60,7 @@
                     username_give: username,
                     password_give: password
                 },
-                success: function(response) {
+                success: function (response) {
                     alert('You are registered')
                     window.location.replace = '/login'
                 }
@@ -60,10 +68,98 @@
             })
         }
     </script>
+
+    <style>
+        * {
+            font-family: 'Noto Serif Display', serif;
+        }
+
+        body {
+            background-color: rgba(232, 52, 78, 0.2);
+            min-height: 100vh;
+
+        }
+
+        .section {
+            padding: 1rem 1.5rem;
+            max-width: 750px;
+            margin: auto;
+        }
+
+        .title {
+            font-weight: 800;
+            font-size: 5rem;
+        }
+
+        .subtitle {
+            font-size: 2rem;
+        }
+
+        .is-sparta {
+            color: #e8344e;
+        }
+    </style>
 </head>
 
 <body>
+    <!-- Banner Start -->
+    <section class="hero is-white">
+        <div class="hero-body has-text-centered" style="padding-bottom: 1rem; margin: auto;">
+            <h1 class="title is-sparta">Sweeter</h1>
+            <h3 class="subtitle is-sparta">Sweetest</h3>
+        </div>
+    </section>
+    <!-- Banner End -->
 
+    <!-- Login Form-->
+    <section class="section">
+        <div class="container">
+            <div class="box" style="max-width: 480px; margin: auto;">
+                <article class="media">
+                    <div class="media-content">
+                        <div class="content">
+                            <div class="field has-addons">
+                                <div class="control has-icons-left" style="width: 100%;">
+                                    <input id="input-username" class="input" type="text" placeholder="id">
+                                    <span class="icon is-small is-left">
+                                        <i class="fa fa-user"></i>
+                                    </span>
+                                </div>
+                                <div id="btn-check-dup" class="control">
+                                    <button class="button is-sparta" onclick="check_dup">
+                                        Check Your Id
+                                    </button>
+                                </div>
+                            </div>
+                            <p id="help-id" class="help">
+                                for your id please type 2-10 English character, number and special character (._-)
+                            </p>
+                            <p id="help-id-login" class="help is-danger">
+                            <div class="field">
+                                <div class="control has-icons-left">
+                                    <input id="input-password" class="input" type="password" placeholder="password">
+                                    <span class="icon is-small is-left">
+                                        <i class="fa fa-lock"></i>
+                                    </span>
+                                </div>
+                                <p id="help-password" class="help">
+                                    for your password please enter 8-20 character, number, or special character
+                                    (!@#$%^&*)
+                                </p>
+                            </div>
+                            </p>
+                        </div>
+                        <div id="div-sign-in-or-up" class="has-text-centered">
+                            <nav class="level is-mobile">
+                                <button class="level-item button is-sparta" onclick="sign_in()">Sign In</button>
+                            </nav>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+    <!-- Login End-->
 </body>
 
 </html>
