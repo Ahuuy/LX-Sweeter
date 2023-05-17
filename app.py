@@ -1,128 +1,156 @@
-from flask import (
-    Flask,
-    render_template,
-    jsonify,
-    request,
-    sessions,
-    redirect,
-    url_for
-)
-
 from pymongo import MongoClient
 import jwt
 from datetime import datetime, timedelta
 import hashlib
 
+from flask import (
+    Flask,
+    render_template,
+    jsonify,
+    request,
+    redirect,
+    url_for
+)
+
+from werkzeug.utils import secure_filename
+
 app = Flask(__name__)
-MONGODB_CONNECTION_STRING = 'mongodb+srv://Farhanjul01:13July2001@cluster0.tabyzzi.mongodb.net/?retryWrites=true&w=majority'
-client = MongoClient(MONGODB_CONNECTION_STRING)
-db = client.dbsparta_plus_week4
+
+app.config['TEMPLATES_AUTO_RELOAD'] = True
+app.config['UPLOAD_FOLDER'] = './static/profile_pics'
 
 SECRET_KEY = 'SPARTA'
 
+MONGODB_CONNECTION_STRING = 'mongodb+srv://Farhanjul01:13July2001@cluster0.tabyzzi.mongodb.net/?retryWrites=true&w=majority'
+
+client = MongoClient(MONGODB_CONNECTION_STRING)
+
+db = client.dbsparta_plus_week4
+
+TOKEN_KEY = 'mytoken'
+
 @app.route('/', methods=['GET'])
 def home():
-    token_receive = request.cookies.get('mytoken')
+    token_receive = request.cookies.get(TOKEN_KEY)
     try:
         payload = jwt.decode(
             token_receive,
             SECRET_KEY,
             algorithms=['HS256']
         )
-        user_info = db.user.find_one({'id': payload['id']})
-        return render_template('index.html', nickname=user_info['nick'])
+        return render_template('index.html')
     except jwt.ExpiredSignatureError:
-        return redirect(url_for(
-            'login',
-            msg="Your login token has expired"
-        ))
+        msg = 'Your token has expired'
+        return redirect(url_for('login', msg=msg))
     except jwt.exceptions.DecodeError:
-        return redirect(url_for(
-            'login',
-            msg="There was an issue logging you in"
-        ))
+        msg = 'There was a problem logging you in'
+        return redirect(url_for('login', msg=msg))
 
 @app.route('/login', methods=['GET'])
 def login():
     msg = request.args.get('msg')
     return render_template('login.html', msg=msg)
 
-@app.route('/register', methods=['GET'])
-def register():
-    return render_template('register.html')
-
-@app.route('/api/register', methods=['POST'])
-def api_register():
-    id_receive = request.form.get('id_give')
-    pw_receive = request.form.get('pw_give')
-    nickname_receive = request.form.get('nickname_give')
-
-    if db.user.find_one({'id': id_receive}):
-        return jsonify({'result': 'failure', 'msg': f'The ID for {id_receive} is not available. please choose diferent one'})
-
-    pw_hash = hashlib.sha256(pw_receive.encode('utf-8')).hexdigest()
-
-    db.user.insert_one({
-        'id': id_receive,
-        'pw': pw_hash,
-        'nick': nickname_receive,
-    })
-
-    return jsonify({ 'result': 'success'})
-
-@app.route('/api/login', methods=['POST'])
-def api_login():
-    id_receive = request.form.get('id_give')
-    pw_receive = request.form.get('pw_give')
-    pw_hash = hashlib.sha256(pw_receive.encode('utf-8')).hexdigest()
-    result = db.user.find_one({
-        'id': id_receive,
-        'pw': pw_hash,
-    })
-
-    if result:
-        payload = {
-            'id': id_receive,
-            'exp': datetime.utcnow() + timedelta(seconds=5)
-        }
-        token = jwt(
-            payload,
+@app.route('/user/<username>', methods=['GET'])
+def user(username):
+    token_receive = request.cookies.get(TOKEN_KEY)
+    try:
+        payload = jwt.decode(
+            token_receive,
             SECRET_KEY,
-            algorithms=['HS256']
+            algorithms=['SH256']
         )
+        status = username == payload.get('id')
+        user_info = db.user.find_one(
+            {'username': username},
+            {'_id': False}
+        )
+        return render_template(
+            'user.html',
+            user_info=user_info,
+            status=status
+        )
+    except (jwt.ExpiredSignatureError, jwt.exceptions.DecodeError):
+        return redirect(url_for('home'))
 
-        return jsonify({
-            'result': 'success',
-            'token': token
-        })
-    else:
-        return jsonify({
-            'result':  'fail',
-            'msg': 'Either your id or password is incorrect'
-        })
+@app.route('/sign_in', methods=['POST'])
+def sign_in():
+    return jsonify({'result': 'success'})
 
+@app.route('/sign_up/save', methods=['POST'])
+def sign_up():
+    username_receive = request.form.get('username_give')
+    password_receive = request.form.get('password_give')
+    password_hash = hashlib.sha256(password_receive.encode('utf-8')).hexdigest()
+    return jsonify({'result': 'success'})
 
-@app.route('/api/nick', methods=['GET'])
-def api_valid():
-    token_receive = request.cookies.get('mytoken')
+@app.route('/sign_up/check_dup', methods=['POST'])
+def check_dup():
+    return jsonify({'result': 'success'})
+
+@app.route('/update/profile', methods=['POST'])
+def update_profile():
+    token_receive = request.cookies.get(TOKEN_KEY)
     try:
         payload = jwt.decode(
             token_receive,
             SECRET_KEY,
             algorithms=['HS256']
         )
-        print(payload)
-        user_info = db.user.find_one({'id': payload.get('id')})
         return jsonify({
             'result': 'success',
-            'nick': user_info.get('nick')
+            'msg': 'Your profile has been updated'
         })
-    except jwt.ExpiredSignatureError:
-        msg="Your login token has expired"
-        return jsonify({'result': 'fail', 'msg': msg})
-    except jwt.exceptions.DecodeError:
-        msg="There was an issue logging you in"
-        return jsonify({'result': 'fail', 'msg': msg})
-
+    except (jwt.ExpiredSignatureError, jwt.exceptions.DecodeError):
+        return redirect(url_for('home'))
+    
+@app.route('/posting', methods=['POST'])
+def posting():
+    token_receive = request.cookies.get(TOKEN_KEY)
+    try:
+        payload = jwt.decode(
+            token_receive,
+            SECRET_KEY,
+            algorithms=['HS256']
+        )
+        return jsonify({
+            'result': 'success',
+            'msg': 'Posting Successful'
+        })
+    except (jwt.ExpiredSignatureError, jwt.exceptions.DecodeError):
+        return redirect(url_for('home'))
+    
+@app.route('/get_posts', methods=['GET'])
+def get_posts():
+    token_receive = request.cookies.get(TOKEN_KEY)
+    try:
+        payload = jwt.decode(
+            token_receive,
+            SECRET_KEY,
+            algorithms=['HS256']
+        )
+        return jsonify({
+            'result': 'success',
+            'msg': 'Successfully fetched all post'
+        })
+    except (jwt.ExpiredSignatureError, jwt.exceptions.DecodeError):
+        return redirect(url_for('home'))
+    
+@app.route('/update_like', methods=['POST'])
+def update_like():
+    token_receive = request.cookies.get(TOKEN_KEY)
+    try:
+        payload = jwt.decode(
+            token_receive,
+            SECRET_KEY,
+            algorithms=['HS256']
+        )
+        return jsonify({
+            'result': 'success',
+            'msg': 'pdated'
+        })
+    except (jwt.ExpiredSignatureError, jwt.exceptions.DecodeError):
+        return redirect(url_for('home'))
+    
 if __name__ == '__main__':
-    app.run('0.0.0.0', port=5000, debug=5000)
+    app.run('0.0.0.0', port=5000, debug=True)
