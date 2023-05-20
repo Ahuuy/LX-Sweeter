@@ -1,0 +1,1 @@
+flask, jwt pymongo, request, jsonify, certifi
